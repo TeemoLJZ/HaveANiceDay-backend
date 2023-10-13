@@ -2,6 +2,9 @@ from django.shortcuts import render,HttpResponse
 from common.models import Customer
 from django.http import JsonResponse
 from lib.handler import dispatcherBase
+from django.db.models import Q
+from django.core.paginator import Paginator,EmptyPage
+import sys, traceback
 import json
 
 ########dispathcer代码优化前###############
@@ -50,14 +53,26 @@ import json
 
 def listcustomers(request):
       # 返回一个 QuerySet 对象 ，包含所有的表记录
-  qs = Customer.objects.values()
-  print(qs)
+    try:
+        qs = Customer.objects.values().order_by('-id')
+        keywords = request.params.get("keywords",None)
+        if keywords:
+            conditions = [Q(name__contain = one) for one in keywords if one]
+            query = Q()
+            for condition in conditions:
+                query &= condition
+            qs = qs.filter(query)
+        pagesize = request.params["pagesize"]
+        pagenum = request.params["pagenum"]
+        pgne = Paginator(qs,pagesize)
+        page = pgne.page(pagenum)
+        retlist = list(page)
+        return JsonResponse({'ret': 0, 'retlist': retlist,'total':pgne.count})
+    except EmptyPage:
+        return JsonResponse({'ret':0,'retlist':[],'total':0})
+    except:
+        return JsonResponse({'ret': 2,  'msg': f'未知错误\n{traceback.format_exc()}'})
 
-    # 将 QuerySet 对象 转化为 list 类型
-    # 否则不能 被 转化为 JSON 字符串
-  retlist = list(qs)
-
-  return JsonResponse({'ret': 0, 'retlist': retlist})
 
 def addcustomer(request):
   

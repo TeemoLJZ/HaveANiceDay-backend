@@ -1,19 +1,30 @@
 from common.models import Medicine
 from django.http import JsonResponse
 from lib.handler import dispatcherBase
+from django.core.paginator import Paginator
+from django.db.models import Q
 import json
 
     
 def listmedicine(request):
       # 返回一个 QuerySet 对象 ，包含所有的表记录
-  qs = Medicine.objects.values()
-  print(qs)
-
+  qs = Medicine.objects.values().order_by('-id')
+  keywords = request.params.get('keywords',None)
+  if keywords:
+    conditions = [Q(name__contains=one)|Q(id__contains =one) for one in keywords.split(' ') if one]
+    query =Q()
+    for condition in conditions:
+        query |= condition
+    qs=qs.filter(query)
+  pagesize = request.params['pagesize']
+  pagenumber = request.params['pagenum']
+  pgnt = Paginator(qs,pagesize)
+  page = pgnt.page(pagenumber)
+  retlist =list(page)
     # 将 QuerySet 对象 转化为 list 类型
     # 否则不能 被 转化为 JSON 字符串
-  retlist = list(qs)
 
-  return JsonResponse({'ret': 0, 'retlist': retlist})
+  return JsonResponse({'ret': 0, 'retlist': retlist, 'total':pgnt.count})
 
 def addmedicine(request):
   
