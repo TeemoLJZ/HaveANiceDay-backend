@@ -57,7 +57,7 @@ def listcustomers(request):
         qs = Customer.objects.values().order_by('-id')
         keywords = request.params.get("keywords",None)
         if keywords:
-            conditions = [Q(name__contains = one) for one in keywords if one]
+            conditions = [Q(name__contain = one) for one in keywords if one]
             query = Q()
             for condition in conditions:
                 query &= condition
