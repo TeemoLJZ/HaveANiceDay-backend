@@ -4,6 +4,6 @@ from django.conf import settings
 from illu import illus
 
 urlpatterns = [
-    path('uploads/',illus.uploadhandler),
-    path('pic/',illus.dispatcher)
+    path('uploads/',illus.uploadIllu),
+    path('pic/',illus.dispatcher),
 ] 
