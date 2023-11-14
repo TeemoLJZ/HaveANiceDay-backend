@@ -30,14 +30,16 @@ class Illustration(models.Model):
   id = models.AutoField(primary_key=True)
   name = models.CharField(max_length=30,blank=False)
   author = models.CharField(max_length=30)
-  illu = models.ImageField(upload_to='illustration')
+  illu = models.CharField(max_length=200)
   desc = models.CharField(max_length=200)
-  updatetime = models.DateTimeField()
-  tag = models.CharField(max_length=200)
-  del_flag = models.SmallIntegerField(default=0)
+  updatetime = models.DateTimeField(auto_now=True)
+  #tag = models.CharField(max_length=200)
+  source = models.CharField(max_length=200,blank=False)
+  feature = models.CharField(max_length=200,blank=False)
+  del_flag = models.SmallIntegerField(default=0) #0是保留
   del_time = models.DateTimeField(blank=True,null=True)
 
 class IlluPic(models.Model):
   picid = models.AutoField(primary_key=True)
   picname = models.CharField(max_length=200)
-  illu = models.ImageField(upload_to='illustration')
+  illu = models.CharField(max_length=200)
