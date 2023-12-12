@@ -36,6 +36,7 @@ class Illustration(models.Model):
   #tag = models.CharField(max_length=200)
   source = models.CharField(max_length=200,blank=False)
   feature = models.CharField(max_length=200,blank=False)
+  type = models.CharField(max_length=200,blank=False)
   del_flag = models.SmallIntegerField(default=0) #0是保留
   del_time = models.DateTimeField(blank=True,null=True)
 
