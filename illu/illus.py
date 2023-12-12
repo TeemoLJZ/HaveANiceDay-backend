@@ -1,7 +1,8 @@
 from common.models import IlluPic
 from common.models import Illustration
 from django.http import JsonResponse
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator,EmptyPage
+from django.db.models import Q
 
 from lib.handler import dispatcherBase
 from datetime import datetime
@@ -75,13 +76,49 @@ def uploadIllu(request):
       
 
 def listillu(request):
-   qs = Illustration.objects.values()
-   pagesize = request.GET['pagesize']
-   pagenumber = request.GET['pagenum']
-   pgnt = Paginator(qs,pagesize)
-   page = pgnt.page(pagenumber)
-   retlist = list(page)
-   return JsonResponse({'ret':0,'retlist':retlist,'total':pgnt.count})
+   try:
+      qs = Illustration.objects.values()
+      keywords = request.GET['keywords']
+      source = request.GET['source']
+      feature = request.GET['feature']
+      type = request.GET['type']
+
+      # 根据类型筛选
+      if type:
+         qs = qs.filter(Q(type__contains=type))
+
+      # 关键字搜索
+      if keywords:
+         conditions = [Q(name__icontains=one)
+                     for one in keywords.split(' ') if one
+                     ]
+         query =Q()
+         for condition in conditions:
+            query &= condition
+         qs=qs.filter(query)
+      
+      # 根据来源搜索（多选）
+      if source:
+         conditions = [Q(source__contains=one)
+                     for one in source.split(',') if one]
+         query = Q()
+         for condition in conditions:
+            query |= condition
+         qs = qs.filter(query)
+
+      # 根据特点搜索
+      if feature:
+         qs = qs.filter(Q(feature__contains=feature))
+      
+      #进行分页
+      pagesize = request.GET['pagesize']
+      pagenumber = request.GET['pagenum']
+      pgnt = Paginator(qs,pagesize)
+      page = pgnt.page(pagenumber)
+      retlist = list(page)
+      return JsonResponse({'ret':0,'retlist':retlist,'total':pgnt.count})
+   except EmptyPage:
+      return JsonResponse({'ret': 0, 'retlist': [], 'total': 0})
 
 def getilludetail(request):
    id = request.GET['id']
